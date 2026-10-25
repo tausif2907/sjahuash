@@ -5,7 +5,8 @@ generation forecast that was available when each day-ahead purchase had to be ma
 measures how accurate those forecasts turned out to be. The data is Elexon's national wind
 outturn (FUELHH) and wind forecasts (WINDFOR) for January 2026.
 
-- **Live app:** _coming soon_
+- **Live app:** https://sjahuash.vercel.app
+- **API docs:** https://sjahuash.vercel.app/api/docs
 - **Stack:** React + TypeScript (Vite) · Python + FastAPI · pandas · Docker
 
 ## What the app shows
@@ -67,8 +68,10 @@ The app runs on Vercel as two pieces from one repo, configured in `vercel.json`:
   data snapshot (`backend/data`) ships inside the function, so no database or Elexon call is
   needed at request time.
 
-Importing the GitHub repository into Vercel with default settings is enough; there are no
-environment variables. Every push to `main` redeploys. The setup was checked locally with
+To deploy, import the GitHub repository into Vercel with Root Directory `./` and Application
+Preset **Other**, so `vercel.json` is used. Vercel otherwise suggests deploying `backend/` and
+`frontend/` as separate services. There are no environment variables, and every push to
+`main` redeploys. The live app is at https://sjahuash.vercel.app. The setup was checked locally with
 `vercel build` (static output, `/api/*` route, Python 3.12, about 120 MB of dependencies) and by
 serving the production build against the entry point in a clean environment.
 
