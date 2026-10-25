@@ -1,0 +1,43 @@
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.key {
+  display: inline-block;
+  width: 16px;
+  height: 0;
+  border-top: 2px solid currentColor;
+}
+
+.key[data-kind='dash'] {
+  border-top-style: dashed;
+}
+
+.key[data-kind='rect'] {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 3px;
+  background: currentColor;
+}
+
+.key[data-kind='band'] {
+  width: 16px;
+  height: 10px;
+  border: 0;
+  border-radius: 3px;
+  background: currentColor;
+}

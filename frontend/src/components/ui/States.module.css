@@ -1,0 +1,53 @@
+.skeleton {
+  width: 100%;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    100deg,
+    var(--surface-sunken) 30%,
+    color-mix(in oklab, var(--surface-sunken) 60%, var(--surface)) 50%,
+    var(--surface-sunken) 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in oklab, var(--critical) 35%, transparent);
+  background: color-mix(in oklab, var(--critical) 8%, var(--surface));
+  color: var(--critical);
+}
+
+.error > div {
+  flex: 1;
+}
+
+.errorTitle {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.errorMessage {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.empty {
+  padding: 32px 0;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14px;
+}

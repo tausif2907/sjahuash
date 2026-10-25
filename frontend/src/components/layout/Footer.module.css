@@ -1,0 +1,38 @@
+.footer {
+  margin-top: 48px;
+  border-top: 1px solid var(--border);
+}
+
+.inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px 24px 28px;
+  font-size: 12.5px;
+  color: var(--ink-muted);
+}
+
+.links {
+  display: flex;
+  gap: 16px;
+}
+
+.links a {
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.links a:hover {
+  color: var(--accent-ink);
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .inner {
+    padding: 16px 16px 24px;
+  }
+}

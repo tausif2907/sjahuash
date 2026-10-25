@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 // In development the React app calls /api on its own origin and Vite forwards it to
 // FastAPI. Set API_PROXY_TARGET if the backend is not on localhost:8000.
@@ -12,5 +12,9 @@ export default defineConfig({
     proxy: {
       '/api': apiTarget,
     },
+  },
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
   },
 })

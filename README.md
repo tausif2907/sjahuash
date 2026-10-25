@@ -8,8 +8,23 @@ outturn (FUELHH) and wind forecasts (WINDFOR) for January 2026.
 - **Live app:** _coming soon_
 - **Stack:** React + TypeScript (Vite) · Python + FastAPI · pandas · Docker
 
-> **Status:** data ingestion, the January 2026 snapshot and the analysis API are done.
-> The dashboard views are in progress.
+## What the app shows
+
+| View | Answers | Highlights |
+|---|---|---|
+| **Day-ahead view** | What forecast did the desk have at gate closure, and what happened? | Clickable month heat-strip of daily bias · energy and error tiles · actual vs forecast profile with a P10–P90 band · hourly error bars with a synced tooltip · a timeline of how the forecast run was chosen · ← → steps through days |
+| **Forecast accuracy** | How far can the forecast be trusted? | Headline "recommended cover" figure · MAE, RMSE, bias, P10 · error vs look-ahead (click to drill in) · error distribution · forecast vs actual scatter · error by hour of day and by delivery day (click a day to open it) |
+| **Methodology** | How were the numbers produced? | Decision timeline, data sources, cleaning counts, selection rule, metric definitions, caveats, architecture |
+
+Throughout: every chart has a **Table** view and **CSV export**; all state (view, day, gate
+closure, period, look-ahead) lives in the URL, so any view can be shared with **Copy link**;
+light and dark themes; works at phone width.
+
+**Headline finding (January 2026, EPEX 09:20 gate closure):** the forecast over-estimated
+wind in 85% of hours, by 1.82 GW on average (MAE 2.09 GW). Holding 4.25 GW of cover would
+have absorbed the shortfall in 9 of 10 hours. The bias persists even at a 0 h look-ahead, so
+it looks structural (possibly curtailment) rather than weather error. That is a hypothesis
+to confirm with the client.
 
 ## Quick start
 
@@ -133,9 +148,24 @@ days, default: the whole snapshot).
 │   ├── pyproject.toml     # pytest and ruff config
 │   ├── requirements.txt
 │   └── requirements-dev.txt
-├── frontend/              # React + TypeScript app (Vite)
-│   └── src/
-├── .github/workflows/ci.yml  # lint, test, build frontend, build Docker image
+├── frontend/
+│   ├── src/
+│   │   ├── api/           # schema.d.ts (generated from OpenAPI), typed client, React Query hooks
+│   │   ├── components/
+│   │   │   ├── ui/        # Card, StatTile, SegmentedControl, Slider, DateRange, InfoTip…
+│   │   │   ├── charts/    # chart theme, tooltip, legend, ChartCard (chart/table/CSV)
+│   │   │   └── layout/    # header, footer, page header and toolbar
+│   │   ├── features/
+│   │   │   ├── day-ahead/    # day view: calendar strip, profile + error charts, timeline
+│   │   │   ├── accuracy/     # accuracy view: insight banner and five charts
+│   │   │   └── methodology/  # documentation view
+│   │   ├── lib/           # formatting (UK time), series transforms, URL state, theme, CSV
+│   │   ├── styles/        # design tokens (light/dark) and global styles
+│   │   ├── appState.ts    # URL-backed app state and its defaults
+│   │   └── App.tsx        # shell; each view is lazy-loaded
+│   ├── vite.config.ts     # dev proxy to the API, Vitest config
+│   └── .prettierrc.json
+├── .github/workflows/ci.yml  # lint, format, test, build frontend, build Docker image
 ├── Dockerfile             # multi-stage: build frontend, then Python runtime
 └── docker-compose.yml
 ```
@@ -144,10 +174,19 @@ days, default: the whole snapshot).
 
 ```bash
 cd backend && pytest && ruff check . && ruff format --check .
-cd frontend && npm run lint && npm run build
+cd frontend && npm run lint && npm run format:check && npm test && npm run build
 ```
 
 CI runs all of the above plus a Docker build on every push and pull request.
+
+**Frontend conventions.**
+
+- API types are generated from the backend's OpenAPI schema (`npm run gen:api` with the
+  backend running), so a contract change fails the type check instead of failing at runtime.
+- Chart colours are validated for colour-vision deficiency in both themes. Every value shown
+  only in a tooltip is also in the chart's table view.
+- Pure logic (formatting, energy integration, histogram binning, tick generation, CSV) lives
+  in `src/lib` and is unit-tested with Vitest; components stay thin.
 
 ## Use of AI tools
 

@@ -1,0 +1,273 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Decision timeline steps */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 32px;
+  right: -12px;
+  width: 12px;
+  height: 2px;
+  background: var(--axis);
+}
+
+.stepIcon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 6px;
+  border-radius: 9px;
+  background: var(--accent-wash);
+  color: var(--accent-ink);
+}
+
+.stepWhen {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.stepTitle {
+  font-size: 14.5px;
+  color: var(--ink);
+}
+
+.stepText {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+/* Tables and lists */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.table th {
+  padding: 0 8px 8px 0;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.table td {
+  padding: 10px 8px 10px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.table [data-num] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.facts div {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.facts dt {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.facts dd {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.facts p {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--ink-muted);
+}
+
+.lead {
+  font-size: 14.5px;
+  color: var(--ink-2);
+}
+
+.lead b {
+  color: var(--ink);
+}
+
+.modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.modes > div {
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.modes h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.modes p {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.formula {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--accent-ink);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 10px 16px;
+  margin: 0;
+  font-size: 13.5px;
+}
+
+.metrics dt {
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.metrics dd {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.caveats {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.caveats b {
+  color: var(--ink);
+}
+
+/* Architecture strip */
+.arch {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.archBox {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+
+.archBox strong {
+  font-size: 14px;
+}
+
+.archBox span {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.archArrow {
+  align-self: center;
+  color: var(--ink-muted);
+  font-size: 18px;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+@media (max-width: 1000px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .step::after {
+    display: none;
+  }
+  .arch {
+    flex-direction: column;
+  }
+  .archArrow {
+    transform: rotate(90deg);
+  }
+}
+
+@media (max-width: 560px) {
+  .steps,
+  .facts,
+  .modes {
+    grid-template-columns: 1fr;
+  }
+}
