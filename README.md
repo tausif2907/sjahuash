@@ -56,6 +56,22 @@ npm install
 npm run dev                   # http://localhost:5173, proxies /api to localhost:8000
 ```
 
+## Deployment (Vercel)
+
+The app runs on Vercel as two pieces from one repo, configured in `vercel.json`:
+
+- **Frontend.** `npm run build` in `frontend/` produces static files (`frontend/dist`)
+  served from Vercel's CDN.
+- **API.** `api/index.py` is a Python serverless function that imports the same FastAPI app
+  as Docker and local development. Every `/api/*` request is routed to it. The committed
+  data snapshot (`backend/data`) ships inside the function, so no database or Elexon call is
+  needed at request time.
+
+Importing the GitHub repository into Vercel with default settings is enough; there are no
+environment variables. Every push to `main` redeploys. The setup was checked locally with
+`vercel build` (static output, `/api/*` route, Python 3.12, about 120 MB of dependencies) and by
+serving the production build against the entry point in a clean environment.
+
 ## Data pipeline
 
 `backend/app/ingest.py` downloads both datasets from the
@@ -132,42 +148,74 @@ days, default: the whole snapshot).
 
 ```
 .
+├── api/
+│   └── index.py               # Vercel serverless entry point: exposes backend/app/main.py:app
 ├── backend/
 │   ├── app/
-│   │   ├── config.py      # analysis window, gate closures, Elexon URL, snapshot paths
-│   │   ├── elexon.py      # HTTP client for FUELHH / WINDFOR (chunked, with retries)
-│   │   ├── ingest.py      # fetch + clean + write snapshot (CLI: python -m app.ingest)
-│   │   ├── data.py        # loads the snapshot once per process
-│   │   ├── selection.py   # which forecast counts for each target (decision / horizon)
-│   │   ├── metrics.py     # accuracy statistics: overall, by hour, by day
-│   │   ├── schemas.py     # Pydantic response models (documented at /api/docs)
-│   │   ├── api.py         # HTTP routes and query validation
-│   │   └── main.py        # FastAPI app; serves /api and the built frontend
-│   ├── data/              # committed snapshot: actuals.csv, forecasts.csv, meta.json
-│   ├── tests/             # pytest suite
-│   ├── pyproject.toml     # pytest and ruff config
-│   ├── requirements.txt
-│   └── requirements-dev.txt
+│   │   ├── __init__.py
+│   │   ├── config.py          # analysis window, gate closures, Elexon URL, snapshot paths
+│   │   ├── elexon.py          # HTTP client for FUELHH / WINDFOR (chunked, with retries)
+│   │   ├── ingest.py          # fetch + clean + write snapshot (CLI: python -m app.ingest)
+│   │   ├── data.py            # loads the snapshot once per process
+│   │   ├── selection.py       # which forecast counts for each target (decision / horizon)
+│   │   ├── metrics.py         # accuracy statistics: overall, by hour, by day
+│   │   ├── schemas.py         # Pydantic response models (documented at /api/docs)
+│   │   ├── api.py             # HTTP routes and query validation
+│   │   └── main.py            # FastAPI app; serves /api and, in Docker, the built frontend
+│   ├── data/                  # committed snapshot
+│   │   ├── actuals.csv        #   half-hourly wind outturn
+│   │   ├── forecasts.csv      #   cleaned forecasts with publish time and horizon
+│   │   └── meta.json          #   request parameters and cleaning counts
+│   ├── tests/
+│   │   ├── conftest.py        # in-memory snapshot builder for tests
+│   │   ├── test_elexon.py     # chunking, request parameters, response envelopes
+│   │   ├── test_ingest.py     # cleaning rules and the end-to-end snapshot write
+│   │   ├── test_selection.py  # cutoffs (incl. BST and clock-change days), forecast selection
+│   │   ├── test_metrics.py    # statistics against hand-computed values
+│   │   ├── test_api.py        # every endpoint, including validation errors
+│   │   └── test_deploy.py     # Vercel entry point, config and requirement pins
+│   ├── pyproject.toml         # pytest and ruff config
+│   ├── requirements.txt       # runtime dependencies (Docker / local)
+│   └── requirements-dev.txt   # + pytest, httpx, ruff
 ├── frontend/
+│   ├── public/favicon.svg
 │   ├── src/
-│   │   ├── api/           # schema.d.ts (generated from OpenAPI), typed client, React Query hooks
+│   │   ├── api/               # schema.d.ts (generated from OpenAPI), typed client, React Query hooks
 │   │   ├── components/
-│   │   │   ├── ui/        # Card, StatTile, SegmentedControl, Slider, DateRange, InfoTip…
-│   │   │   ├── charts/    # chart theme, tooltip, legend, ChartCard (chart/table/CSV)
-│   │   │   └── layout/    # header, footer, page header and toolbar
+│   │   │   ├── ui/            # Card, StatTile, SegmentedControl, Slider, DateRange, InfoTip…
+│   │   │   ├── charts/        # chart theme, tooltip, legend, ChartCard (chart/table/CSV)
+│   │   │   └── layout/        # header, footer, page header and toolbar
 │   │   ├── features/
-│   │   │   ├── day-ahead/    # day view: calendar strip, profile + error charts, timeline
-│   │   │   ├── accuracy/     # accuracy view: insight banner and five charts
-│   │   │   └── methodology/  # documentation view
-│   │   ├── lib/           # formatting (UK time), series transforms, URL state, theme, CSV
-│   │   ├── styles/        # design tokens (light/dark) and global styles
-│   │   ├── appState.ts    # URL-backed app state and its defaults
-│   │   └── App.tsx        # shell; each view is lazy-loaded
-│   ├── vite.config.ts     # dev proxy to the API, Vitest config
-│   └── .prettierrc.json
-├── .github/workflows/ci.yml  # lint, format, test, build frontend, build Docker image
-├── Dockerfile             # multi-stage: build frontend, then Python runtime
-└── docker-compose.yml
+│   │   │   ├── day-ahead/     # day view: calendar strip, profile + error charts, timeline
+│   │   │   ├── accuracy/      # accuracy view: insight banner and five charts
+│   │   │   └── methodology/   # documentation view
+│   │   ├── lib/               # formatting (UK time), series transforms, URL state, theme, CSV
+│   │   ├── styles/            # design tokens (light/dark) and global styles
+│   │   ├── appState.ts        # URL-backed app state and its defaults
+│   │   ├── App.tsx            # shell; each view is lazy-loaded
+│   │   └── main.tsx           # entry: React Query provider, global styles
+│   ├── index.html
+│   ├── package.json           # scripts: dev, build, test, lint, format, gen:api
+│   ├── package-lock.json
+│   ├── vite.config.ts         # dev proxy to the API, Vitest config
+│   ├── tsconfig.json          # project references to tsconfig.app.json / tsconfig.node.json
+│   ├── tsconfig.app.json
+│   ├── tsconfig.node.json
+│   ├── eslint.config.js
+│   ├── .prettierrc.json
+│   ├── .prettierignore
+│   └── .gitignore
+├── .github/workflows/ci.yml   # lint, format, test, build frontend, build Docker image
+├── Dockerfile                 # multi-stage: build frontend, then Python runtime
+├── docker-compose.yml         # one service: the Docker image on port 8000
+├── vercel.json                # Vercel: build the frontend, route /api/* to api/index.py
+├── requirements.txt           # Vercel function dependencies (pins match backend/)
+├── .python-version            # Python 3.12 for Vercel
+├── .vercelignore              # files kept out of CLI uploads to Vercel
+├── .dockerignore
+├── .gitattributes             # LF line endings everywhere
+├── .gitignore
+└── README.md
 ```
 
 ## Testing and code quality
