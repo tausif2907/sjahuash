@@ -8,8 +8,8 @@ outturn (FUELHH) and wind forecasts (WINDFOR) for January 2026.
 - **Live app:** _coming soon_
 - **Stack:** React + TypeScript (Vite) · Python + FastAPI · pandas · Docker
 
-> **Status:** the repo layout, the data ingestion pipeline and the January 2026 data
-> snapshot are done. The analysis API and the dashboard views are in progress.
+> **Status:** data ingestion, the January 2026 snapshot and the analysis API are done.
+> The dashboard views are in progress.
 
 ## Quick start
 
@@ -75,15 +75,58 @@ are fetched from 72 hours before the first delivery day, since WINDFOR looks up 
 **Current snapshot:** 1,536 half-hourly actuals (none missing) · 14,847 forecasts from
 272 runs · every target hour has at least one forecast.
 
+## How forecasts are selected and scored
+
+For every target half-hour T the app takes the **latest forecast run published at or
+before a cutoff**. Two views differ only in the cutoff:
+
+| Mode | Cutoff | Answers |
+|---|---|---|
+| `decision` (default) | Day-ahead gate closure on D-1, UK time (D = T's delivery day) | What did the trader actually see when buying? |
+| `horizon` | T − H hours | How does accuracy decay as the forecast looks further ahead? |
+
+**Gate closure.** Since Brexit the GB day-ahead auctions close at **09:20** (EPEX SPOT)
+and **09:50** (Nord Pool N2EX) UK time on D-1. The default is 09:20, so the chosen forecast
+was available for either auction; `gate_closure=09:50` switches to N2EX. With WINDFOR's
+publishing schedule this picks the 07:30 run (09:20) or the 09:30 run (09:50).
+
+**Matching.** WINDFOR is hourly, so a forecast is compared with the FUELHH actual that has
+the same `startTime`. Half-hours past the hour show the actual only.
+
+**Metrics.** Error = actual − forecast, so **negative means less wind than forecast**, a
+shortfall the buyer has to cover. Reported: MAE, RMSE, bias (mean error), nMAE (total
+absolute error / total actual), P10/P50/P90 of the error, worst shortfall and surplus.
+P10 is the buffer figure: in 90% of hours the shortfall was no worse than −P10. MAPE is
+left out because it explodes when output is near zero.
+
+### API
+
+Interactive docs: `/api/docs`. All analysis endpoints accept `start` and `end` (UK delivery
+days, default: the whole snapshot).
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/meta` | Data coverage, gate-closure options, row counts |
+| `GET /api/series?mode=decision&gate_closure=09:20` | Half-hourly actuals with the selected forecast, its publish time, horizon and error |
+| `GET /api/series?mode=horizon&horizon_h=24` | Same, for a fixed look-ahead |
+| `GET /api/metrics?...` | Same selection parameters; overall, by UK hour of day, by delivery day |
+| `GET /api/metrics/by-horizon?max_h=48&step_h=1` | Accuracy at each look-ahead from 0 to `max_h` hours |
+| `GET /api/health` | Liveness and snapshot timestamp |
+
 ## Repository layout
 
 ```
 .
 ├── backend/
 │   ├── app/
-│   │   ├── config.py      # analysis window, Elexon base URL, snapshot paths
+│   │   ├── config.py      # analysis window, gate closures, Elexon URL, snapshot paths
 │   │   ├── elexon.py      # HTTP client for FUELHH / WINDFOR (chunked, with retries)
 │   │   ├── ingest.py      # fetch + clean + write snapshot (CLI: python -m app.ingest)
+│   │   ├── data.py        # loads the snapshot once per process
+│   │   ├── selection.py   # which forecast counts for each target (decision / horizon)
+│   │   ├── metrics.py     # accuracy statistics: overall, by hour, by day
+│   │   ├── schemas.py     # Pydantic response models (documented at /api/docs)
+│   │   ├── api.py         # HTTP routes and query validation
 │   │   └── main.py        # FastAPI app; serves /api and the built frontend
 │   ├── data/              # committed snapshot: actuals.csv, forecasts.csv, meta.json
 │   ├── tests/             # pytest suite
