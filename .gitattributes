@@ -1,0 +1,5 @@
+# Keep LF line endings on every OS so the committed data snapshot and the
+# Docker/CI files are byte-identical wherever they are checked out.
+* text=auto eol=lf
+*.svg text eol=lf
+*.png binary

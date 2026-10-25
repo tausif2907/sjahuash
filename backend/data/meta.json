@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-10-25T18:48:41Z",
+  "source": "Elexon BMRS Insights API",
+  "target_window": {
+    "start": "2026-01-01T00:00:00Z",
+    "end_exclusive": "2026-02-02T00:00:00Z"
+  },
+  "requests": {
+    "actuals": {
+      "endpoint": "https://data.elexon.co.uk/bmrs/api/v1/datasets/FUELHH/stream",
+      "settlement_dates": [
+        "2025-12-31",
+        "2026-02-02"
+      ],
+      "fuel_type": "WIND"
+    },
+    "forecasts": {
+      "endpoint": "https://data.elexon.co.uk/bmrs/api/v1/datasets/WINDFOR/stream",
+      "published": [
+        "2025-12-29T00:00:00Z",
+        "2026-02-02T00:00:00Z"
+      ]
+    }
+  },
+  "actuals": {
+    "raw_rows": 1632,
+    "dropped_other_fuel": 0,
+    "dropped_outside_window": 96,
+    "dropped_duplicates": 0,
+    "rows": 1536,
+    "missing_periods": []
+  },
+  "forecasts": {
+    "raw_rows": 20440,
+    "dropped_negative_horizon": 4201,
+    "dropped_outside_window": 1392,
+    "dropped_duplicates": 0,
+    "rows": 14847,
+    "publish_runs": 272,
+    "horizon_h_max": 66.5,
+    "target_hours_without_forecast": []
+  }
+}
